@@ -17,7 +17,14 @@ public class MoteurResolution {
 		// nReine.addQueen(4, 3);
 		// System.out.println(nReine);
 		// System.out.println(nReine.isValid());
-		rechercheLocale();
+	}
+
+	public void reset() {
+		nReine.reset();
+	}
+	
+	public void clear(){
+		nReine.clear();
 	}
 
 	public NReine rechercheLocale() {
@@ -26,7 +33,6 @@ public class MoteurResolution {
 		double currentTemp = temperature;
 		float cptTour = 0;
 		while (!best.isValid()) {
-			// System.out.println(best);
 			NReine test = best.getNeighbour();
 			int testError = test.getErrors().size();
 			double diffError = testError - nbErrors;
@@ -45,11 +51,47 @@ public class MoteurResolution {
 		return best;
 	}
 
+	public NReine backtracking() {
+		return backtracking(nReine, 1);
+	}
+
+	public NReine backtracking(final NReine nReine, final int nthQueen) {
+		if (nReine.allQueenPlaced()) {
+			return nReine;
+		} else {
+			for (int y = 1; y <= size; y++) {
+				if (nReine.isSafe(nthQueen, y)) {
+					nReine.addQueen(nthQueen, y);
+					final NReine retour = backtracking(nReine, nthQueen + 1);
+					if(retour != null){
+						return retour;
+					}
+					nReine.removeQueen(nthQueen);
+				}
+			}
+		}
+		return null;
+	}
+
 	public static void main(String[] args) {
-		long timeStart = System.currentTimeMillis();
-		final MoteurResolution moteurResolution = new MoteurResolution(200);
-		long timeEnd = System.currentTimeMillis();
-		long elapsedTime = timeEnd - timeStart;
-		System.out.println(elapsedTime+"ms");
+		long timeStart;
+		long timeEnd;
+		long elapsedTime;
+		MoteurResolution moteurResolution = new MoteurResolution(4);
+
+		// timeStart = System.currentTimeMillis();
+		// System.out.println(moteurResolution.rechercheLocale());
+		// timeEnd = System.currentTimeMillis();
+		// elapsedTime = timeEnd - timeStart;
+		// System.out.println("Resolution par recherche locale avec recuit simulé effectuée en "
+		// + elapsedTime + "ms");
+
+		timeStart = System.currentTimeMillis();
+		moteurResolution.clear();
+		System.out.println(moteurResolution.backtracking());
+		timeEnd = System.currentTimeMillis();
+		elapsedTime = timeEnd - timeStart;
+		System.out.println("Resolution par backtracking effectuée en "
+				+ elapsedTime + "ms");
 	}
 }

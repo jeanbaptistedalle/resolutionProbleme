@@ -1,12 +1,15 @@
 package resolution.probleme;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class NReine {
 
 	private Integer[] reines;
+	
+	private List<Integer>[] AC;
 
 	private Integer size;
 
@@ -26,6 +29,18 @@ public class NReine {
 		this(size, true);
 	}
 
+	public void reset() {
+		int cpt = 1;
+		for (int i = 1; i <= size; i++) {
+			reines[i] = cpt;
+			cpt++;
+		}
+	}
+
+	public void clear() {
+		Arrays.fill(reines, null);
+	}
+
 	public boolean contains(final Integer x, final Integer y) {
 		return reines[x] != null && reines[x] == y;
 	}
@@ -34,7 +49,27 @@ public class NReine {
 		reines[x] = y;
 	}
 
+	public void removeQueen(final Integer x) {
+		reines[x] = null;
+	}
+
+	public boolean areQueenPlacedValid() {
+		return getErrors().size() == 0;
+	}
+
+	public boolean allQueenPlaced() {
+		for (int i = 1; i <= size; i++) {
+			if (reines[i] == null) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public boolean isValid() {
+		if (!allQueenPlaced()) {
+			return false;
+		}
 		return getErrors().size() == 0;
 	}
 
@@ -45,7 +80,7 @@ public class NReine {
 		for (int x1 = 1; x1 <= size; x1++) {
 			for (int x2 = 1; x2 <= size; x2++) {
 				if (x1 != x2) {
-				// Test vertical
+					// Test vertical
 					if (reines[x1] == reines[x2]) {
 						errors.add(x1);
 					}
@@ -54,14 +89,29 @@ public class NReine {
 						if (Math.abs(reines[x1] - reines[x2]) == Math.abs(x1 - x2)) {
 							errors.add(x1);
 						}
-						if (Math.abs(reines[x2] - reines[x1]) == Math.abs(x2 - x1)) {
-							errors.add(x1);
-						}
 					}
 				}
 			}
 		}
 		return errors;
+	}
+	
+	public void AC(){
+		
+	}
+
+	public boolean isSafe(final int x, final int y) {
+		for (int i = 1; i <= size; i++) {
+			if (reines[i] != null && reines[i] == y) {
+				return false;
+			}
+			if (reines[i] != null) {
+				if (Math.abs(y - reines[i]) == Math.abs(x - i)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	public String toString() {
