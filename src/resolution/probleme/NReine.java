@@ -8,20 +8,16 @@ import java.util.Random;
 public class NReine {
 
 	private Integer[] reines;
-	
-	private List<Integer>[] AC;
 
 	private Integer size;
 
 	public NReine(final Integer size, final boolean generate) {
 		this.size = size;
-		reines = new Integer[size + 1];
+		reines = new Integer[size];
 		if (generate) {
-			int cpt = 1;
-			for (int i = 1; i <= size; i++) {
-				reines[i] = cpt;
-				cpt++;
-			}
+			generate();
+		}else{
+			clear();
 		}
 	}
 
@@ -29,9 +25,9 @@ public class NReine {
 		this(size, true);
 	}
 
-	public void reset() {
-		int cpt = 1;
-		for (int i = 1; i <= size; i++) {
+	public void generate() {
+		int cpt = 0;
+		for (int i = 0; i < size; i++) {
 			reines[i] = cpt;
 			cpt++;
 		}
@@ -58,7 +54,7 @@ public class NReine {
 	}
 
 	public boolean allQueenPlaced() {
-		for (int i = 1; i <= size; i++) {
+		for (int i = 0; i < size; i++) {
 			if (reines[i] == null) {
 				return false;
 			}
@@ -77,8 +73,8 @@ public class NReine {
 		// Le test horizontal est inutile car, de par la représentation du
 		// tablea, il ne peut y avoir qu'une reine par ligne
 		final List<Integer> errors = new ArrayList<Integer>();
-		for (int x1 = 1; x1 <= size; x1++) {
-			for (int x2 = 1; x2 <= size; x2++) {
+		for (int x1 = 0; x1 < size; x1++) {
+			for (int x2 = 0; x2 < size; x2++) {
 				if (x1 != x2) {
 					// Test vertical
 					if (reines[x1] == reines[x2]) {
@@ -95,13 +91,23 @@ public class NReine {
 		}
 		return errors;
 	}
-	
-	public void AC(){
-		
+
+	public static boolean checkConstraint(final int x1, final int y1, final int x2, final int y2) {
+		if (x1 == x2) {
+			return false;
+		}
+		if (y1 == y2) {
+			return false;
+		}
+		// Test diagonal
+		if (Math.abs(y1 - y2) == Math.abs(x1 - x2)) {
+			return false;
+		}
+		return true;
 	}
 
 	public boolean isSafe(final int x, final int y) {
-		for (int i = 1; i <= size; i++) {
+		for (int i = 0; i < size; i++) {
 			if (reines[i] != null && reines[i] == y) {
 				return false;
 			}
@@ -116,9 +122,9 @@ public class NReine {
 
 	public String toString() {
 		final StringBuilder stringBuilder = new StringBuilder();
-		for (int x = 1; x <= size; x++) {
+		for (int x = 0; x < size; x++) {
 			if (reines[x] != null) {
-				for (int y = 1; y <= size; y++) {
+				for (int y = 0; y < size; y++) {
 					if (reines[x] == y) {
 						stringBuilder.append("o");
 					} else {
@@ -126,7 +132,7 @@ public class NReine {
 					}
 				}
 			} else {
-				for (int y = 1; y <= size; y++) {
+				for (int y = 0; y < size; y++) {
 					stringBuilder.append("-");
 				}
 			}
@@ -138,13 +144,10 @@ public class NReine {
 	public NReine getNeighbour() {
 		final NReine neighBour = clone();
 		final Random rand = new Random();
-		int x = 0;
-		while (x == 0) {
-			x = rand.nextInt(size) + 1;
-		}
-		int y = 0;
-		while (y == 0 || contains(x, y)) {
-			y = rand.nextInt(size) + 1;
+		int x = rand.nextInt(size);
+		int y = -1;
+		while (y == -1 || contains(x, y)) {
+			y = rand.nextInt(size);
 		}
 		neighBour.addQueen(x, y);
 		return neighBour;
@@ -152,7 +155,7 @@ public class NReine {
 
 	protected NReine clone() {
 		final NReine clone = new NReine(this.size);
-		for (int x = 1; x <= size; x++) {
+		for (int x = 0; x < size; x++) {
 			if (reines[x] != null) {
 				clone.addQueen(x, reines[x]);
 			}
