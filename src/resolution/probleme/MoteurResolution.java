@@ -1,10 +1,9 @@
 package resolution.probleme;
 
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MoteurResolution {
@@ -34,15 +33,108 @@ public class MoteurResolution {
 		}
 	}
 
+	public enum HeuristiqueEnum {
+		FF("First Find"), MIN("Min First"), MAX("Max First"), MIN_DOMAIN_SIZE(
+				"Min Domain Size First"), RAND("Random");
+
+		private String label;
+
+		private HeuristiqueEnum(final String label) {
+			this.label = label;
+		}
+
+		public static List<HeuristiqueEnum> getAll() {
+			final List<HeuristiqueEnum> list = new ArrayList<HeuristiqueEnum>();
+			list.add(FF);
+			list.add(MIN);
+			list.add(MAX);
+			list.add(MIN_DOMAIN_SIZE);
+			list.add(RAND);
+			return list;
+		}
+
+		public String getLabel() {
+			return this.label;
+		}
+	}
+
+	private class MinComparator implements Comparator<Integer> {
+		public int compare(Integer arg0, Integer arg1) {
+			if (arg0 > arg1) {
+				return 1;
+			} else if (arg1 > arg0) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	private class MaxComparator implements Comparator<Integer> {
+		public int compare(Integer arg0, Integer arg1) {
+			if (arg0 > arg1) {
+				return -1;
+			} else if (arg1 > arg0) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	private class MinDomainSizeComparator implements Comparator<Integer> {
+		private List<List<Integer>> domain;
+
+		public void setDomain(final List<List<Integer>> domain) {
+			this.domain = domain;
+		}
+
+		@Override
+		public int compare(Integer arg0, Integer arg1) {
+			if (domain.get(arg0).size() > domain.get(arg1).size()) {
+				return 1;
+			} else if (domain.get(arg0).size() < domain.get(arg1).size()) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
 	private NReine nReine;
 	private int size;
+	private ResolutionEnum resolution;
+	private HeuristiqueEnum heuristique;
+	private Comparator<Integer> comparator;
 
-	public MoteurResolution(Integer size) {
+	public MoteurResolution(Integer size, final ResolutionEnum resolution,
+			final HeuristiqueEnum heuristique) {
 		if (size < 4) {
 			size = 4;
 		}
 		this.nReine = new NReine(size, false);
 		this.size = size;
+		this.resolution = resolution;
+		this.heuristique = heuristique;
+		if (heuristique != null) {
+			switch (heuristique) {
+			case MAX:
+				comparator = new MaxComparator();
+				break;
+			case MIN:
+				comparator = new MinComparator();
+				break;
+			case MIN_DOMAIN_SIZE:
+				comparator = new MinDomainSizeComparator();
+				break;
+			case RAND:
+				comparator = null;
+				break;
+			default:
+				comparator = null;
+				break;
+			}
+		}
 	}
 
 	public List<List<Integer>> generateDomain() {
@@ -67,6 +159,16 @@ public class MoteurResolution {
 			}
 		}
 		return workList;
+	}
+
+	public void sortByComparator(final List<Integer> listToSort) {
+		if (comparator != null) {
+			Collections.sort(listToSort, comparator);
+		} else {
+			if (heuristique == HeuristiqueEnum.RAND) {
+				Collections.shuffle(listToSort);
+			}
+		}
 	}
 
 	public NReine rechercheLocale() {
@@ -98,20 +200,26 @@ public class MoteurResolution {
 		return backtracking(false);
 	}
 
-	public NReine backtracking(final boolean ACFirst) {
+	public NReine backtracking(final boolean AC) {
 		nReine.clear();
-		if (ACFirst) {
-			final List<List<Integer>> domain = AC3();
-			return backtracking(0, domain);
+		List<List<Integer>> domain;
+
+		if (AC) {
+			domain = AC3();
 		} else {
-			return backtracking(0, generateDomain());
+			domain = generateDomain();
 		}
+		if (heuristique == HeuristiqueEnum.MIN_DOMAIN_SIZE) {
+			((MinDomainSizeComparator) comparator).setDomain(domain);
+		}
+		return backtracking(0, domain);
 	}
 
 	private NReine backtracking(final int nthQueen, final List<List<Integer>> domain) {
 		if (nReine.allQueenPlaced()) {
 			return nReine;
 		} else {
+			sortByComparator(domain.get(nthQueen));
 			for (final Integer y : domain.get(nthQueen)) {
 				if (nReine.isSafe(nthQueen, y)) {
 					nReine.addQueen(nthQueen, y);
@@ -178,11 +286,11 @@ public class MoteurResolution {
 
 	public NReine forwardChecking(final boolean AC) {
 		nReine.clear();
+		List<List<Integer>> domain;
 		if (AC) {
-			final List<List<Integer>> domain = AC3();
-			return forwardChecking(domain, 0);
+			domain = AC3();
 		} else {
-			final List<List<Integer>> domain = new ArrayList<List<Integer>>();
+			domain = new ArrayList<List<Integer>>();
 			final List<Integer> list = new ArrayList<Integer>();
 			for (int y = 0; y < size; y++) {
 				list.add(y);
@@ -190,14 +298,18 @@ public class MoteurResolution {
 			for (int x = 0; x < size; x++) {
 				domain.add(x, new ArrayList<Integer>(list));
 			}
-			return forwardChecking(domain, 0);
 		}
+		if (heuristique == HeuristiqueEnum.MIN_DOMAIN_SIZE) {
+			((MinDomainSizeComparator) comparator).setDomain(domain);
+		}
+		return forwardChecking(domain, 0);
 	}
 
 	public NReine forwardChecking(final List<List<Integer>> domain, final Integer nthQueen) {
 		if (nReine.allQueenPlaced()) {
 			return nReine;
 		} else {
+			sortByComparator(domain.get(nthQueen));
 			for (final Integer y : domain.get(nthQueen)) {
 				nReine.addQueen(nthQueen, y);
 				final List<List<Integer>> reduction = reduceDomain(domain, nthQueen, y);
@@ -240,9 +352,13 @@ public class MoteurResolution {
 		}
 	}
 
-	public NReine execute(final ResolutionEnum resolution, final StringBuilder stringBuilder) {
+	public NReine execute(final StringBuilder stringBuilder) {
 		long timeStart = System.currentTimeMillis();
 		final NReine result;
+		if (size > 30 && resolution != ResolutionEnum.RL) {
+			stringBuilder.append("\t");
+			return null;
+		}
 		switch (resolution) {
 		case RL:
 			result = rechercheLocale();
@@ -260,33 +376,63 @@ public class MoteurResolution {
 			result = forwardChecking(true);
 			break;
 		default:
+			stringBuilder.append("\t");
 			return null;
 		}
 		long timeEnd = System.currentTimeMillis();
 		long elapsedTime = timeEnd - timeStart;
-		System.out.println("\tResolution par " + resolution.getLabel() + " obtenue en "
-				+ elapsedTime + "ms");
+		StringBuilder stringBuilder2 = new StringBuilder();
+		stringBuilder2.append("\tResolution par '");
+		stringBuilder2.append(resolution.getLabel());
+		if (heuristique != null) {
+			stringBuilder2.append("' et heuristique '");
+			stringBuilder2.append(heuristique.getLabel());
+		}
+		stringBuilder2.append("' obtenue en ");
+		stringBuilder2.append(elapsedTime);
+		stringBuilder2.append("ms");
+		System.out.println(stringBuilder2.toString());
 		stringBuilder.append(elapsedTime);
 		stringBuilder.append("\t");
 		return result;
 	}
 
 	public static void main(String[] args) {
+		final MoteurResolution m = new MoteurResolution(350, ResolutionEnum.RL,
+				HeuristiqueEnum.RAND);
+		long timeStart = System.currentTimeMillis();
+		final NReine nReine = m.execute(new StringBuilder());
+		long timeEnd = System.currentTimeMillis();
+		long elapsedTime = timeEnd - timeStart;
+		System.out.println(elapsedTime + "ms");
+		System.out.println(nReine.isValid());
+		// System.out.println(nReine);
+	}
+
+	public static void main2(String[] args) {
 		try {
 			final PrintWriter writer = new PrintWriter("moteurResolution.dat", "UTF-8");
-
 			final List<Integer> testedSizes = new ArrayList<Integer>();
-			for (int i = 4; i <= 30; i++) {
+			for (int i = 4; i <= 100; i++) {
 				testedSizes.add(i);
 			}
 			final StringBuilder stringBuilder = new StringBuilder();
 			for (final Integer size : testedSizes) {
 				stringBuilder.append(size);
 				stringBuilder.append("\t");
-				MoteurResolution moteurResolution = new MoteurResolution(size);
 				System.out.println("Moteur de résolution pour le problème " + size + "-queens : ");
 				for (final ResolutionEnum resolution : ResolutionEnum.getAll()) {
-					moteurResolution.execute(resolution, stringBuilder);
+					if (resolution == ResolutionEnum.RL) {
+						final MoteurResolution moteurResolution = new MoteurResolution(size,
+								resolution, null);
+						moteurResolution.execute(stringBuilder);
+					} else {
+						for (final HeuristiqueEnum heuristique : HeuristiqueEnum.getAll()) {
+							final MoteurResolution moteurResolution = new MoteurResolution(size,
+									resolution, heuristique);
+							moteurResolution.execute(stringBuilder);
+						}
+					}
 				}
 				stringBuilder.append(System.getProperty("line.separator"));
 			}

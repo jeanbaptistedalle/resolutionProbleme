@@ -1,2 +1,4 @@
 gnuplot plotProgrammationContrainte.plt
 gnuplot plotRechercheLocale.plt
+gnuplot plotBackTracking.plt
+gnuplot plotForwardChecking.plt
