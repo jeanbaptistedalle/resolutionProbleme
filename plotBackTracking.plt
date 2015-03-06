@@ -2,7 +2,8 @@ set terminal png size 1000,400 enhanced font "Helvetica,10"
 set output 'Programmation par contraintes - Back Tracking.png'
 set style data linespoints
 set key top left
-set xrange [4:29]
+set xrange [4:30]
+set yrange [:4000]
 set ylabel "Temps d'execution en ms"
 set xlabel "Nombre de reine"
 set title "Programmation par contraintes - Back Tracking - DALLE Jean-Baptiste"

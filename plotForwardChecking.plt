@@ -3,6 +3,7 @@ set output 'Programmation par contraintes - Forward Checking.png'
 set style data linespoints
 set key top left
 set xrange [4:29]
+set yrange [:7000]
 set ylabel "Temps d'execution en ms"
 set xlabel "Nombre de reine"
 set title "Programmation par contraintes - Forward Checking - DALLE Jean-Baptiste"
