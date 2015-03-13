@@ -34,7 +34,8 @@ public class MoteurResolution {
 	}
 
 	public enum HeuristiqueEnum {
-		FF("First Find"), MIN("Min First"), MAX("Max First"), RAND("Random");
+		FF("First Find"), MIN("Min First"), MAX("Max First"), MIN_DOMAIN_SIZE(
+				"Min Domain Size First"), RAND("Random");
 
 		private String label;
 
@@ -47,6 +48,7 @@ public class MoteurResolution {
 			list.add(FF);
 			list.add(MIN);
 			list.add(MAX);
+			list.add(MIN_DOMAIN_SIZE);
 			list.add(RAND);
 			return list;
 		}
@@ -91,7 +93,7 @@ public class MoteurResolution {
 		if (size < 4) {
 			size = 4;
 		}
-		this.nReine = new NReine(size, false);
+		this.nReine = new NReine(size);
 		this.size = size;
 		this.resolution = resolution;
 		this.heuristique = heuristique;
@@ -147,13 +149,27 @@ public class MoteurResolution {
 		}
 	}
 
+	public Integer getMinDomainSizeQueen(final List<List<Integer>> domain) {
+		Integer min = null;
+		for (int i = 0; i < size; i++) {
+			if (nReine.get(i) == null) {
+				if (min == null) {
+					min = i;
+				} else if (domain.get(i).size() < domain.get(min).size()) {
+					min = i;
+				}
+			}
+		}
+		return min;
+	}
+
 	public NReine rechercheLocale() {
 		NReine best = nReine;
 		best.generate();
 		int nbErrors = best.getErrors().size();
 		double currentTemp = 100f / size;
 		float cptTour = 0;
-		while (!best.isValid()) {
+		while (nbErrors != 0) {
 			NReine test = best.getNeighbour();
 			int testError = test.getErrors().size();
 			double diffError = testError - nbErrors;
@@ -172,11 +188,11 @@ public class MoteurResolution {
 		return best;
 	}
 
-	public NReine backtracking() {
+	public boolean backtracking() {
 		return backtracking(false);
 	}
 
-	public NReine backtracking(final boolean AC) {
+	public boolean backtracking(final boolean AC) {
 		nReine.clear();
 		List<List<Integer>> domain;
 
@@ -188,23 +204,29 @@ public class MoteurResolution {
 		return backtracking(0, domain);
 	}
 
-	private NReine backtracking(final int nthQueen, final List<List<Integer>> domain) {
+	private boolean backtracking(final Integer nthQueen, final List<List<Integer>> domain) {
 		if (nReine.allQueenPlaced()) {
-			return nReine;
+			return true;
 		} else {
 			sortByComparator(domain.get(nthQueen));
 			for (final Integer y : domain.get(nthQueen)) {
 				if (nReine.isSafe(nthQueen, y)) {
 					nReine.addQueen(nthQueen, y);
-					final NReine retour = backtracking(nthQueen + 1, domain);
-					if (retour != null) {
-						return retour;
+					if (heuristique == HeuristiqueEnum.MIN_DOMAIN_SIZE) {
+						final Integer nextQueen = getMinDomainSizeQueen(domain);
+						if(backtracking(nextQueen, domain)){
+							return true;
+						}
+					} else {
+						if(backtracking(nthQueen + 1, domain)){
+							return true;
+						}
 					}
 					nReine.removeQueen(nthQueen);
 				}
 			}
 		}
-		return null;
+		return false;
 	}
 
 	public List<List<Integer>> AC3() {
@@ -253,11 +275,11 @@ public class MoteurResolution {
 		return change;
 	}
 
-	public NReine forwardChecking() {
+	public boolean forwardChecking() {
 		return forwardChecking(false);
 	}
 
-	public NReine forwardChecking(final boolean AC) {
+	public boolean forwardChecking(final boolean AC) {
 		nReine.clear();
 		List<List<Integer>> domain;
 		if (AC) {
@@ -275,32 +297,35 @@ public class MoteurResolution {
 		return forwardChecking(domain, 0);
 	}
 
-	public NReine forwardChecking(final List<List<Integer>> domain, final Integer nthQueen) {
+	public boolean forwardChecking(final List<List<Integer>> domain, final Integer nthQueen) {
 		if (nReine.allQueenPlaced()) {
-			return nReine;
+			return true;
 		} else {
 			sortByComparator(domain.get(nthQueen));
 			for (final Integer y : domain.get(nthQueen)) {
 				nReine.addQueen(nthQueen, y);
 				final List<List<Integer>> reduction = reduceDomain(domain, nthQueen, y);
-				final NReine retour = forwardChecking(domain, nthQueen + 1);
-				if (retour != null) {
-					return retour;
+				if (heuristique == HeuristiqueEnum.MIN_DOMAIN_SIZE) {
+					if(forwardChecking(domain, getMinDomainSizeQueen(domain))){
+						return true;
+					}
+				} else {
+					if(forwardChecking(domain, nthQueen + 1)){
+						return true;
+					}
 				}
 				nReine.removeQueen(nthQueen);
 				restaureDomain(domain, reduction);
 			}
 		}
-		return null;
+		return false;
 	}
 
 	private List<List<Integer>> reduceDomain(final List<List<Integer>> domain, final int x,
 			final int y) {
 		final List<List<Integer>> reduction = new ArrayList<List<Integer>>();
-		for (int i = 0; i < size; i++) {
-			reduction.add(new ArrayList<Integer>());
-		}
 		for (int x2 = 0; x2 < size; x2++) {
+			reduction.add(new ArrayList<Integer>());
 			final List<Integer> listX2 = new ArrayList<Integer>();
 			for (final Integer y2 : domain.get(x2)) {
 				if (!NReine.checkConstraint(x, y, x2, y2)) {
@@ -322,32 +347,45 @@ public class MoteurResolution {
 		}
 	}
 
-	public NReine execute(final StringBuilder stringBuilder) {
-		long timeStart = System.currentTimeMillis();
-		final NReine result;
-		if (size > 30 && !(resolution == ResolutionEnum.RL || heuristique == HeuristiqueEnum.RAND)) {
-			stringBuilder.append("\t");
-			return null;
+	public void execute(final StringBuilder stringBuilder) {
+		if (size > 31 && size <= 90) {
+			if (resolution != ResolutionEnum.FC && resolution != ResolutionEnum.FC_AC
+					&& resolution != ResolutionEnum.RL) {
+				stringBuilder.append("\t");
+				return;
+			} else {
+				if (heuristique != HeuristiqueEnum.MIN_DOMAIN_SIZE
+						&& heuristique != HeuristiqueEnum.RAND) {
+					stringBuilder.append("\t");
+					return;
+				}
+			}
+		} else if (size > 90) {
+			if (resolution != ResolutionEnum.RL) {
+				stringBuilder.append("\t");
+				return;
+			}
 		}
+		long timeStart = System.currentTimeMillis();
 		switch (resolution) {
 		case RL:
-			result = rechercheLocale();
+			rechercheLocale();
 			break;
 		case BT:
-			result = backtracking();
+			backtracking();
 			break;
 		case BT_AC:
-			result = backtracking(true);
+			backtracking(true);
 			break;
 		case FC:
-			result = forwardChecking();
+			forwardChecking();
 			break;
 		case FC_AC:
-			result = forwardChecking(true);
+			forwardChecking(true);
 			break;
 		default:
 			stringBuilder.append("\t");
-			return null;
+			return;
 		}
 		long timeEnd = System.currentTimeMillis();
 		long elapsedTime = timeEnd - timeStart;
@@ -364,14 +402,13 @@ public class MoteurResolution {
 		System.out.println(stringBuilder2.toString());
 		stringBuilder.append(elapsedTime);
 		stringBuilder.append("\t");
-		return result;
 	}
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		try {
 			final PrintWriter writer = new PrintWriter("moteurResolution.dat", "UTF-8");
 			final List<Integer> testedSizes = new ArrayList<Integer>();
-			for (int i = 4; i <= 200; i++) {
+			for (int i = 200; i <= 300; i++) {
 				testedSizes.add(i);
 			}
 			for (final Integer size : testedSizes) {

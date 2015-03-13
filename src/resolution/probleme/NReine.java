@@ -11,18 +11,10 @@ public class NReine {
 
 	private Integer size;
 
-	public NReine(final Integer size, final boolean generate) {
+	public NReine(final Integer size) {
 		this.size = size;
 		reines = new Integer[size];
-		if (generate) {
-			generate();
-		}else{
-			clear();
-		}
-	}
-
-	public NReine(final Integer size) {
-		this(size, true);
+		clear();
 	}
 
 	public void generate() {
@@ -52,6 +44,10 @@ public class NReine {
 	public boolean areQueenPlacedValid() {
 		return getErrors().size() == 0;
 	}
+	
+	public Integer get(final Integer x){
+		return reines[x];
+	}
 
 	public boolean allQueenPlaced() {
 		for (int i = 0; i < size; i++) {
@@ -71,10 +67,10 @@ public class NReine {
 
 	public List<Integer> getErrors() {
 		// Le test horizontal est inutile car, de par la représentation du
-		// tablea, il ne peut y avoir qu'une reine par ligne
+		// tableau, il ne peut y avoir qu'une reine par ligne
 		final List<Integer> errors = new ArrayList<Integer>();
 		for (int x1 = 0; x1 < size; x1++) {
-			for (int x2 = 0; x2 < size; x2++) {
+			for (int x2 = x1+1; x2 < size; x2++) {
 				if (x1 != x2) {
 					// Test vertical
 					if (reines[x1] == reines[x2]) {

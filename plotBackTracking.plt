@@ -10,8 +10,10 @@ set title "Programmation par contraintes - Back Tracking - DALLE Jean-Baptiste"
 plot  "moteurResolution.dat" using 1:3 title 'Back Tracking / First Find', \
       "moteurResolution.dat" using 1:4 title 'Back Tracking / Min First', \
       "moteurResolution.dat" using 1:5 title 'Back Tracking / Max First', \
-      "moteurResolution.dat" using 1:6 title 'Back Tracking / Random', \
-      "moteurResolution.dat" using 1:7 title 'AC+Back Tracking / First Find', \
-      "moteurResolution.dat" using 1:8 title 'AC+Back Tracking / Min First', \
-      "moteurResolution.dat" using 1:9 title 'AC+Back Tracking / Max First', \
-      "moteurResolution.dat" using 1:10 title 'AC+Back Tracking / Random';
+      "moteurResolution.dat" using 1:6 title 'Back Tracking / Min Domain First', \
+      "moteurResolution.dat" using 1:7 title 'Back Tracking / Random', \
+      "moteurResolution.dat" using 1:8 title 'AC+Back Tracking / First Find', \
+      "moteurResolution.dat" using 1:9 title 'AC+Back Tracking / Min First', \
+      "moteurResolution.dat" using 1:10 title 'AC+Back Tracking / Max First', \
+      "moteurResolution.dat" using 1:11 title 'AC+Back Tracking / Min Domain First', \
+      "moteurResolution.dat" using 1:12 title 'AC+Back Tracking / Random';
