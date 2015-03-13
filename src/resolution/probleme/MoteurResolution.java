@@ -163,7 +163,7 @@ public class MoteurResolution {
 		return min;
 	}
 
-	public NReine rechercheLocale() {
+	public void rechercheLocale() {
 		NReine best = nReine;
 		best.generate();
 		int nbErrors = best.getErrorCount();
@@ -185,7 +185,7 @@ public class MoteurResolution {
 			cptTour++;
 			currentTemp = 100f / cptTour;
 		}
-		return best;
+		nReine = best;
 	}
 
 	public boolean backtracking() {
@@ -403,6 +403,10 @@ public class MoteurResolution {
 		stringBuilder.append(elapsedTime);
 		stringBuilder.append("\t");
 	}
+	
+	public NReine getnReine() {
+		return nReine;
+	}
 
 //	public static void main(final String[] args) {
 //		MoteurResolution mr = new MoteurResolution(2000, ResolutionEnum.RL, HeuristiqueEnum.FF);
@@ -412,6 +416,7 @@ public class MoteurResolution {
 //		long elapsedTime = timeEnd - timeStart;
 //		System.out.println(elapsedTime + "ms");
 //	}
+
 
 	public static void main(final String[] args) {
 		try {

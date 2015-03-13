@@ -1,14 +1,11 @@
 package resolution.probleme;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 public class NReine {
 
 	private Integer[] reines;
-	private List<List<Integer>> errors;
 	private Integer errorCount;
 	private Integer size;
 
@@ -18,26 +15,17 @@ public class NReine {
 		clear();
 	}
 
-	private void prepareError() {
-		errorCount = 0;
-		this.errors = new ArrayList<List<Integer>>(size);
-		for (int i = 0; i < size; i++) {
-			errors.add(new ArrayList<Integer>());
-		}
-	}
-
 	public void generate() {
 		int cpt = 0;
 		for (int i = 0; i < size; i++) {
 			reines[i] = cpt;
 			cpt++;
 		}
-		getAllErrors();
+		searchAllErrors();
 	}
 
 	public void clear() {
 		Arrays.fill(reines, null);
-		errors = null;
 		errorCount = null;
 	}
 
@@ -51,10 +39,6 @@ public class NReine {
 
 	public void removeQueen(final Integer x) {
 		reines[x] = null;
-	}
-
-	public boolean areQueenPlacedValid() {
-		return getErrors().size() == 0;
 	}
 
 	public Integer get(final Integer x) {
@@ -74,14 +58,10 @@ public class NReine {
 		if (!allQueenPlaced()) {
 			return false;
 		}
-		return errorCount == 0;
-	}
-
-	public List<List<Integer>> getErrors() {
-		if (errors == null) {
-			getAllErrors();
+		if(errorCount == null){
+			searchAllErrors();
 		}
-		return errors;
+		return errorCount == 0;
 	}
 
 	private void updateError(int x1) {
@@ -94,10 +74,10 @@ public class NReine {
 		}
 	}
 
-	public void getAllErrors() {
+	public void searchAllErrors() {
 		// Le test horizontal est inutile car, de par la représentation du
 		// tableau, il ne peut y avoir qu'une reine par ligne
-		prepareError();
+		errorCount = 0;
 		for (int x1 = 0; x1 < size; x1++) {
 			for (int x2 = x1 + 1; x2 < size; x2++) {
 				if (verticalCheck(x1, x2) || diagonalCheck(x1, x2)) {
@@ -106,6 +86,10 @@ public class NReine {
 			}
 		}
 		return;
+	}
+
+	private boolean inConflict(int x1, int x2) {
+		return diagonalCheck(x1, x2) || verticalCheck(x1, x2);
 	}
 
 	private boolean diagonalCheck(int x1, int x2) {
@@ -125,19 +109,13 @@ public class NReine {
 	}
 
 	private void addError(int x1, int x2) {
-		if (errors.get(x1).add(x2)) {
-			errorCount++;
-		}
-		if (errors.get(x2).add(x1)) {
+		if (inConflict(x1, x2)) {
 			errorCount++;
 		}
 	}
 
 	private void removeError(int x1, int x2) {
-		if (errors.get(x1).remove((Object) x2)) {
-			errorCount--;
-		}
-		if (errors.get(x2).remove((Object) x1)) {
+		if (inConflict(x1, x2)) {
 			errorCount--;
 		}
 	}
@@ -224,15 +202,7 @@ public class NReine {
 	protected NReine clone() {
 		final NReine clone = new NReine(this.size);
 		clone.errorCount = this.errorCount;
-		cloneErrors(clone);
 		clone.reines = Arrays.copyOf(this.reines, this.size);
 		return clone;
-	}
-
-	private void cloneErrors(final NReine clone) {
-		clone.errors = new ArrayList<List<Integer>>(size);
-		for (int x = 0; x < size; x++) {
-			clone.errors.add(new ArrayList<Integer>(errors.get(x)));
-		}
 	}
 }
