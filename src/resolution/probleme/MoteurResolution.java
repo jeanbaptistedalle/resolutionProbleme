@@ -166,12 +166,12 @@ public class MoteurResolution {
 	public NReine rechercheLocale() {
 		NReine best = nReine;
 		best.generate();
-		int nbErrors = best.getErrors().size();
+		int nbErrors = best.getErrorCount();
 		double currentTemp = 100f / size;
 		float cptTour = 0;
 		while (nbErrors != 0) {
 			NReine test = best.getNeighbour();
-			int testError = test.getErrors().size();
+			int testError = test.getErrorCount();
 			double diffError = testError - nbErrors;
 			if (diffError < 0) {
 				best = test;
@@ -214,11 +214,11 @@ public class MoteurResolution {
 					nReine.addQueen(nthQueen, y);
 					if (heuristique == HeuristiqueEnum.MIN_DOMAIN_SIZE) {
 						final Integer nextQueen = getMinDomainSizeQueen(domain);
-						if(backtracking(nextQueen, domain)){
+						if (backtracking(nextQueen, domain)) {
 							return true;
 						}
 					} else {
-						if(backtracking(nthQueen + 1, domain)){
+						if (backtracking(nthQueen + 1, domain)) {
 							return true;
 						}
 					}
@@ -306,11 +306,11 @@ public class MoteurResolution {
 				nReine.addQueen(nthQueen, y);
 				final List<List<Integer>> reduction = reduceDomain(domain, nthQueen, y);
 				if (heuristique == HeuristiqueEnum.MIN_DOMAIN_SIZE) {
-					if(forwardChecking(domain, getMinDomainSizeQueen(domain))){
+					if (forwardChecking(domain, getMinDomainSizeQueen(domain))) {
 						return true;
 					}
 				} else {
-					if(forwardChecking(domain, nthQueen + 1)){
+					if (forwardChecking(domain, nthQueen + 1)) {
 						return true;
 					}
 				}
@@ -404,11 +404,20 @@ public class MoteurResolution {
 		stringBuilder.append("\t");
 	}
 
+//	public static void main(final String[] args) {
+//		MoteurResolution mr = new MoteurResolution(2000, ResolutionEnum.RL, HeuristiqueEnum.FF);
+//		long timeStart = System.currentTimeMillis();
+//		mr.rechercheLocale();
+//		long timeEnd = System.currentTimeMillis();
+//		long elapsedTime = timeEnd - timeStart;
+//		System.out.println(elapsedTime + "ms");
+//	}
+
 	public static void main(final String[] args) {
 		try {
 			final PrintWriter writer = new PrintWriter("moteurResolution.dat", "UTF-8");
 			final List<Integer> testedSizes = new ArrayList<Integer>();
-			for (int i = 200; i <= 300; i++) {
+			for (int i = 200; i <= 2000; i++) {
 				testedSizes.add(i);
 			}
 			for (final Integer size : testedSizes) {
