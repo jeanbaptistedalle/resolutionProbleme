@@ -1,9 +1,10 @@
 set terminal png size 1000,400 enhanced font "Helvetica,10"
-set output 'Programmation par contraintes.png'
-set style data linespoints
+set output 'Programmation_par_contraintes.png'
+set style data lines
+set datafile separator ":"
 set key top left
-set xrange [4:30]
-set yrange [:7000]
+set xrange [4:31]
+set yrange [:]
 set ylabel "Temps d'execution en ms"
 set xlabel "Nombre de reine"
 set title "Programmation par contraintes - DALLE Jean-Baptiste"

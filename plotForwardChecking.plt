@@ -1,8 +1,9 @@
 set terminal png size 1000,400 enhanced font "Helvetica,10"
-set output 'Programmation par contraintes - Forward Checking.png'
-set style data linespoints
+set output 'Programmation_par_contraintes_-_Forward_Checking.png'
+set style data lines
 set key top left
-set xrange [4:30]
+set datafile separator ":"
+set xrange [4:31]
 set yrange [:7000]
 set ylabel "Temps d'execution en ms"
 set xlabel "Nombre de reine"

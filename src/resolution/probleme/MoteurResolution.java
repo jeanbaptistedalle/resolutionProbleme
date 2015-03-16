@@ -8,6 +8,8 @@ import java.util.List;
 
 public class MoteurResolution {
 
+	private static final String SEPARATOR = ":";
+
 	public enum ResolutionEnum {
 		RL("Recherche locale"), BT("Back Tracking"), BT_AC("AC puis Back Tracking"), FC(
 				"Forward Checking"), FC_AC("AC puis Forward Checking");
@@ -351,18 +353,18 @@ public class MoteurResolution {
 		if (size > 31 && size <= 90) {
 			if (resolution != ResolutionEnum.FC && resolution != ResolutionEnum.FC_AC
 					&& resolution != ResolutionEnum.RL) {
-				stringBuilder.append("\t");
+				stringBuilder.append(SEPARATOR);
 				return;
 			} else {
 				if (heuristique != HeuristiqueEnum.MIN_DOMAIN_SIZE
 						&& heuristique != HeuristiqueEnum.RAND) {
-					stringBuilder.append("\t");
+					stringBuilder.append(SEPARATOR);
 					return;
 				}
 			}
 		} else if (size > 90) {
 			if (resolution != ResolutionEnum.RL) {
-				stringBuilder.append("\t");
+				stringBuilder.append(SEPARATOR);
 				return;
 			}
 		}
@@ -384,7 +386,7 @@ public class MoteurResolution {
 			forwardChecking(true);
 			break;
 		default:
-			stringBuilder.append("\t");
+			stringBuilder.append(SEPARATOR);
 			return;
 		}
 		long timeEnd = System.currentTimeMillis();
@@ -401,34 +403,27 @@ public class MoteurResolution {
 		stringBuilder2.append("ms");
 		System.out.println(stringBuilder2.toString());
 		stringBuilder.append(elapsedTime);
-		stringBuilder.append("\t");
+		stringBuilder.append(":");
 	}
-	
+
 	public NReine getnReine() {
 		return nReine;
 	}
-
-//	public static void main(final String[] args) {
-//		MoteurResolution mr = new MoteurResolution(2000, ResolutionEnum.RL, HeuristiqueEnum.FF);
-//		long timeStart = System.currentTimeMillis();
-//		mr.rechercheLocale();
-//		long timeEnd = System.currentTimeMillis();
-//		long elapsedTime = timeEnd - timeStart;
-//		System.out.println(elapsedTime + "ms");
-//	}
-
 
 	public static void main(final String[] args) {
 		try {
 			final PrintWriter writer = new PrintWriter("moteurResolution.dat", "UTF-8");
 			final List<Integer> testedSizes = new ArrayList<Integer>();
-			for (int i = 200; i <= 2000; i++) {
+			for (int i = 4; i <= 90; i++) {
+				testedSizes.add(i);
+			}
+			for (int i = 91; i <= 7000; i += 50) {
 				testedSizes.add(i);
 			}
 			for (final Integer size : testedSizes) {
 				final StringBuilder stringBuilder = new StringBuilder();
 				stringBuilder.append(size);
-				stringBuilder.append("\t");
+				stringBuilder.append(SEPARATOR);
 				System.out.println("Moteur de résolution pour le problème " + size + "-queens : ");
 				for (final ResolutionEnum resolution : ResolutionEnum.getAll()) {
 					if (resolution == ResolutionEnum.RL) {
