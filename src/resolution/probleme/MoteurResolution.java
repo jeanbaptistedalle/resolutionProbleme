@@ -179,7 +179,7 @@ public class MoteurResolution {
 				best = test;
 				nbErrors = testError;
 			} else {
-				if (Math.round(Math.random() * 1) < Math.exp(-diffError / currentTemp)) {
+				if (Math.round(Math.random()) < Math.exp(-diffError / currentTemp)) {
 					best = test;
 					nbErrors = testError;
 				}

@@ -8,7 +8,7 @@ set yrange [:800]
 set ylabel "Temps d'execution en ms"
 set xlabel "Nombre de reine"
 set title "Programmation par contraintes - Min domain size first / Random - DALLE_Jean-Baptiste"
-plot  "moteurResolution.dat" using 1:16 title 'Forward Checking / Min domain size first', \
+plot  "moteurResolution.dat" using 1:16 title 'Forward Checking / Min Domain First', \
       "moteurResolution.dat" using 1:17 title 'Forward Checking / Random', \
-      "moteurResolution.dat" using 1:21 title 'AC+Forward Checking / Min domain size first',\
+      "moteurResolution.dat" using 1:21 title 'AC+Forward Checking / Min Domain First',\
       "moteurResolution.dat" using 1:22 title 'AC+Forward Checking / Random';
