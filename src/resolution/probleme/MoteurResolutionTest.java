@@ -19,7 +19,7 @@ public class MoteurResolutionTest {
 
 	public void rechercheLocalTest(final ResolutionEnum resolution,
 			final HeuristiqueEnum heuristique) {
-		final MoteurResolution mr = new MoteurResolution(10, resolution, heuristique);
+		final MoteurResolution mr = new MoteurResolution(20, resolution, heuristique);
 		switch (resolution) {
 		case RL:
 			mr.rechercheLocale();
@@ -39,7 +39,7 @@ public class MoteurResolutionTest {
 		default:
 			return;
 		}
-		final NReine nReine = mr.getnReine();
+		final NReine nReine = mr.getNReine();
 		assertNotNull(nReine);
 		// On s'assure une fois le traitement terminé en refaisant le calcul que
 		// les nReines renvoyés sont bien exactes

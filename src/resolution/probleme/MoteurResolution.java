@@ -10,6 +10,10 @@ public class MoteurResolution {
 
 	private static final String SEPARATOR = ":";
 
+	/**
+	 * Cette enumeration contient les différentes méthodes de résolution
+	 * implémentées
+	 */
 	public enum ResolutionEnum {
 		RL("Recherche locale"), BT("Back Tracking"), BT_AC("AC puis Back Tracking"), FC(
 				"Forward Checking"), FC_AC("AC puis Forward Checking");
@@ -35,6 +39,9 @@ public class MoteurResolution {
 		}
 	}
 
+	/**
+	 * Cette énumération contient les différentes heuristiques implémentées
+	 */
 	public enum HeuristiqueEnum {
 		FF("First Find"), MIN("Min First"), MAX("Max First"), MIN_DOMAIN_SIZE(
 				"Min Domain Size First"), RAND("Random");
@@ -90,6 +97,10 @@ public class MoteurResolution {
 	private HeuristiqueEnum heuristique;
 	private Comparator<Integer> comparator;
 
+	public MoteurResolution(Integer size, final ResolutionEnum resolution) {
+		this(size, resolution, null);
+	}
+
 	public MoteurResolution(Integer size, final ResolutionEnum resolution,
 			final HeuristiqueEnum heuristique) {
 		if (size < 4) {
@@ -99,6 +110,10 @@ public class MoteurResolution {
 		this.size = size;
 		this.resolution = resolution;
 		this.heuristique = heuristique;
+		/*
+		 * Suivant l'heuristique choisie, on utilise un comparator qui permettra
+		 * de trier les valeurs
+		 */
 		if (heuristique != null) {
 			switch (heuristique) {
 			case MAX:
@@ -117,6 +132,12 @@ public class MoteurResolution {
 		}
 	}
 
+	/**
+	 * Cette méthode permet de générer un domaine complet : chaque reine de 1 à
+	 * n pour être placé sur les colonnes 1 à n.
+	 * 
+	 * @return
+	 */
 	public List<List<Integer>> generateDomain() {
 		final List<List<Integer>> domain = new ArrayList<List<Integer>>();
 		for (int i = 0; i < size; i++) {
@@ -129,6 +150,12 @@ public class MoteurResolution {
 		return domain;
 	}
 
+	/**
+	 * Cette méthode permet de générer les arcs que l'on va tester dans la
+	 * méthode AC3
+	 * 
+	 * @return
+	 */
 	public List<Arc> generateWorkList() {
 		final List<Arc> workList = new ArrayList<Arc>();
 		for (int i = 0; i < size; i++) {
@@ -169,8 +196,14 @@ public class MoteurResolution {
 		NReine best = nReine;
 		best.generate();
 		int nbErrors = best.getErrorCount();
-		double currentTemp = 100f / size;
+		double currentTemp = 100f;
 		float cptTour = 0;
+		/*
+		 * En temps normal, on aurait du mettre une condition d'arrêt lié à la
+		 * temperature, dans le cas où il n'existerait pas de solution, mais le
+		 * problème des N-Reines à toujours une solution, on peux donc dérouler
+		 * l'algorithme jusqu'à avoir une solution.
+		 */
 		while (nbErrors != 0) {
 			NReine test = best.getNeighbour();
 			int testError = test.getErrorCount();
@@ -179,6 +212,10 @@ public class MoteurResolution {
 				best = test;
 				nbErrors = testError;
 			} else {
+				/*
+				 * Si la solution voisine est moins interessante, on a une
+				 * probabilité de plus en plus faible de tout de même l'accepter
+				 */
 				if (Math.round(Math.random()) < Math.exp(-diffError / currentTemp)) {
 					best = test;
 					nbErrors = testError;
@@ -349,7 +386,54 @@ public class MoteurResolution {
 		}
 	}
 
+	public void execute() {
+		long timeStart = System.currentTimeMillis();
+		switch (resolution) {
+		case RL:
+			rechercheLocale();
+			break;
+		case BT:
+			backtracking();
+			break;
+		case BT_AC:
+			backtracking(true);
+			break;
+		case FC:
+			forwardChecking();
+			break;
+		case FC_AC:
+			forwardChecking(true);
+			break;
+		default:
+			return;
+		}
+		long timeEnd = System.currentTimeMillis();
+		long elapsedTime = timeEnd - timeStart;
+		System.out.println("Résolution effectuée en " + elapsedTime + " ms");
+		NReine solution = getNReine();
+		System.out.println(solution);
+	}
+
+	/**
+	 * Cette methode permet de lancer le moteur de résolution pour la méthode
+	 * selectionnée, puis d'inserer le resultat dans le stringbuilder qui
+	 * servira à sauvegarder les données dans un fichier
+	 * 
+	 * @param stringBuilder
+	 */
 	public void execute(final StringBuilder stringBuilder) {
+		/*
+		 * Les différentes méthodes de résolution et heuristiques n'ayant pas
+		 * les mêmes performances, on ne lance la résolution que dans certains
+		 * cas.
+		 * 
+		 * Pour les différentes méthodes de programmation par contrainte, il est
+		 * possible de calculer jusqu'à 31 et jusqu'à 90 avec les heuristiques
+		 * random et min domain size.
+		 * 
+		 * Pour la recherche locale, on pourra aller jusqu'à l'instance 7000 en
+		 * un temps correct.
+		 */
 		if (size > 31 && size <= 90) {
 			if (resolution != ResolutionEnum.FC && resolution != ResolutionEnum.FC_AC
 					&& resolution != ResolutionEnum.RL) {
@@ -406,11 +490,21 @@ public class MoteurResolution {
 		stringBuilder.append(":");
 	}
 
-	public NReine getnReine() {
+	public NReine getNReine() {
 		return nReine;
 	}
 
-	public static void main(final String[] args) {
+	/**
+	 * Cette méthode peut être appelée dans le main et permet de lancer la
+	 * résolution du problème de N-Reines avec les différentes heuristiques et
+	 * méthode de résolution. Les resultats sont ensuite stockés dans le fichier
+	 * moteurResolution.dat qui pourra ensuite être réutilisé par gnuplot
+	 * 
+	 * ATTENTION !! Ce traitement risque de prendre du temps et écrasera
+	 * l'ancien fichier moteurResolution.dat. Si il n'arrive pas à son terme,
+	 * l'ancien fichier sera simplement vidé.
+	 */
+	public static void genererFichierResultat() {
 		try {
 			final PrintWriter writer = new PrintWriter("moteurResolution.dat", "UTF-8");
 			final List<Integer> testedSizes = new ArrayList<Integer>();
@@ -427,8 +521,12 @@ public class MoteurResolution {
 				System.out.println("Moteur de résolution pour le problème " + size + "-queens : ");
 				for (final ResolutionEnum resolution : ResolutionEnum.getAll()) {
 					if (resolution == ResolutionEnum.RL) {
+						/*
+						 * Les heuristiques ne concernent pas la recherche
+						 * locale
+						 */
 						final MoteurResolution moteurResolution = new MoteurResolution(size,
-								resolution, null);
+								resolution);
 						moteurResolution.execute(stringBuilder);
 					} else {
 						for (final HeuristiqueEnum heuristique : HeuristiqueEnum.getAll()) {
@@ -445,5 +543,18 @@ public class MoteurResolution {
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Ce second main permet de ne lancer qu'une seule méthode de résolution.
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		final MoteurResolution moteurResolution = new MoteurResolution(20, ResolutionEnum.BT,
+				HeuristiqueEnum.RAND);
+		moteurResolution.execute();
+		// Decommenter la ligne suivante pour lancer la récolte des données pour gnuplot
+		// genererFichierResultat();
 	}
 }
