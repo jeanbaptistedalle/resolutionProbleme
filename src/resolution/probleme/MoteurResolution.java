@@ -546,15 +546,72 @@ public class MoteurResolution {
 	}
 
 	/**
-	 * Ce second main permet de ne lancer qu'une seule méthode de résolution.
+	 * Ce main permet de ne lancer qu'une seule méthode de résolution.
 	 * 
 	 * @param args
 	 */
+	// public static void main(String[] args) {
+	// final MoteurResolution moteurResolution = new MoteurResolution(20,
+	// ResolutionEnum.BT,
+	// HeuristiqueEnum.RAND);
+	// moteurResolution.execute();
+	// // Decommenter la ligne suivante pour lancer la récolte des données pour
+	// // gnuplot
+	// // genererFichierResultat();
+	// }
+
 	public static void main(String[] args) {
-		final MoteurResolution moteurResolution = new MoteurResolution(20, ResolutionEnum.BT,
-				HeuristiqueEnum.RAND);
-		moteurResolution.execute();
-		// Decommenter la ligne suivante pour lancer la récolte des données pour gnuplot
-		// genererFichierResultat();
+		if (args.length >= 1 && args.length <= 3) {
+			if (args[0].equals("generateFile")) {
+				genererFichierResultat();
+			} else {
+				int nbReine = Integer.parseInt(args[0]);
+				String res = args[1];
+				ResolutionEnum resolution = null;
+				HeuristiqueEnum heuristique = null;
+				if (res.equals("BT")) {
+					resolution = ResolutionEnum.BT;
+				} else if (res.equals("BTAC")) {
+					resolution = ResolutionEnum.BT_AC;
+				} else if (res.equals("FC")) {
+					resolution = ResolutionEnum.FC;
+				} else if (res.equals("FCAC")) {
+					resolution = ResolutionEnum.FC_AC;
+				} else if (res.equals("RL")) {
+					resolution = ResolutionEnum.RL;
+				}else{
+					System.out.println("Les paramètres possibles sont : ");
+					System.out.println("BT pour back tracking");
+					System.out.println("BTAC pour back tracking avec AC");
+					System.out.println("FC pour forward checking");
+					System.out.println("FCAC pour forward checking avec AC");
+					System.out.println("RL pour recherche locale");
+					System.exit(0);
+				}
+				if (resolution != ResolutionEnum.RL && args.length == 3) {
+					String heur = args[2];
+					heuristique = HeuristiqueEnum.FF;
+					if (heur == "min") {
+						heuristique = HeuristiqueEnum.MIN;
+					} else if (heur == "max") {
+						heuristique = HeuristiqueEnum.MAX;
+					} else if (heur == "minDomain") {
+						heuristique = HeuristiqueEnum.MIN_DOMAIN_SIZE;
+					} else if (heur == "rand") {
+						heuristique = HeuristiqueEnum.RAND;
+					}else{
+						System.out.println("Les paramètres possibles sont : ");
+						System.out.println("min pour l'heuristique minimum");
+						System.out.println("max pour l'heuristique maximum");
+						System.out.println("minDomain pour l'heuristique de domaine de taille minimum");
+						System.out.println("rand pour l'heuristique aléatoire");
+						System.exit(1);
+					}
+				}
+				final MoteurResolution moteurResolution = new MoteurResolution(nbReine, resolution,
+						heuristique);
+				moteurResolution.execute();
+			}
+		}
 	}
 }

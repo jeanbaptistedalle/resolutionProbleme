@@ -4,7 +4,7 @@ set style data lines
 set key top left
 set datafile separator ":"
 set xrange [4:90]
-set yrange [:800]
+set logscale y
 set ylabel "Temps d'execution en ms"
 set xlabel "Nombre de reine"
 set title "Programmation par contraintes - Min domain size first / Random - DALLE_Jean-Baptiste"
